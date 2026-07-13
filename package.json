@@ -1,6 +1,6 @@
 {
   "name": "query-cache-engine",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Transparent Redis caching package with request coalescing, stable key generation, and Express middleware",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
