@@ -21,20 +21,49 @@ npm install query-cache-engine ioredis
 
 ---
 
-## Quick Start (Async Function & DB Cache)
+## Recommended Setup (Centralized Initialization)
 
-Wrap database or HTTP requests using the `remember()` API:
+For production environments, it is recommended to initialize a single shared `CacheManager` instance in a dedicated configuration file (e.g., `cache.ts` or `queryEngine.ts`) and import it wherever caching or middleware is needed.
+
+This allows you to configure connection retry limits, custom loggers, and manage the automatic in-memory failover cleanly:
 
 ```typescript
+// cache.ts
 import { CacheManager } from 'query-cache-engine';
 
-const cacheManager = new CacheManager({
-  redis: { host: '127.0.0.1', port: 6379 }, // Automatically sets up Redis and Memory backup
-  defaultTtl: 300 // default TTL in seconds (5 minutes)
+export const cache = new CacheManager({
+  redis: {
+    host: '127.0.0.1',
+    port: 6379,
+    maxRetriesPerRequest: 1, // Fail fast to activate in-memory fallback quickly if Redis drops
+    retryStrategy(times) {
+      // Reconnect strategy: retry up to 3 times, waiting 5 seconds between attempts
+      if (times > 3) {
+        return null; // Stop reconnecting and remain on Memory fallback
+      }
+      return 5000;
+    },
+  },
+  defaultTtl: 300, // Default cache lifetime in seconds (5 minutes)
+  useMemoryFallback: true, // Enable automatic in-memory backup if Redis goes offline
+  logger: {
+    info: (msg) => console.log(`[Cache INFO] ${msg}`),
+    error: (msg) => console.error(`[Cache ERROR] ${msg}`),
+  },
 });
+```
+
+---
+
+## Quick Start (Async Function & DB Cache)
+
+Wrap heavy database queries or expensive function calls using the `remember()` API with your initialized `cache` instance:
+
+```typescript
+import { cache } from './cache';
 
 // Cache database queries transparently
-const users = await cacheManager.remember('all-users', 60, async () => {
+const users = await cache.remember('all-users', 60, async () => {
   return await db.select().from(usersTable);
 });
 ```
