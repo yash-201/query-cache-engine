@@ -107,12 +107,4 @@ export function createKoaMiddleware(options: KoaCacheOptions) {
   };
 }
 
-// Prototype Extension to avoid circular dependency loops
-declare module '../cache/CacheManager' {
-  interface CacheManager {
-    /**
-     * Creates a caching middleware/plugin compatible with Koa.
-     */
-    middleware(options?: Omit<KoaCacheOptions, 'cacheManager'>): any;
-  }
-}
+

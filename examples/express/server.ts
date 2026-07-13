@@ -14,7 +14,10 @@ app.get(
   '/api/users',
   cacheManager.middleware({
     ttl: 30, // cache for 30s
-    tags: ['users']
+    tags: ['users'],
+    keyOptions: {
+      headers: ["tenant"]
+    }
   }),
   async (req, res) => {
     console.log('[Server] Controller /api/users executing...');

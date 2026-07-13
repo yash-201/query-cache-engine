@@ -134,14 +134,6 @@ export function createFastifyPlugin(options: FastifyCacheOptions) {
   return plugin;
 }
 
-// Prototype Extension to avoid circular dependency loops
-declare module '../cache/CacheManager' {
-  interface CacheManager {
-    /**
-     * Creates a caching middleware/plugin compatible with Express and Fastify.
-     */
-    middleware(options?: Omit<FastifyCacheOptions, 'cacheManager'>): any;
-  }
-}
+
 
 export type FastifyCachePlugin = ReturnType<typeof createFastifyPlugin>;

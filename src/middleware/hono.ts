@@ -124,12 +124,4 @@ export function createHonoMiddleware(options: HonoCacheOptions) {
   };
 }
 
-// Prototype Extension to avoid circular dependency loops
-declare module '../cache/CacheManager' {
-  interface CacheManager {
-    /**
-     * Creates a caching middleware/plugin compatible with Hono.
-     */
-    middleware(options?: Omit<HonoCacheOptions, 'cacheManager'>): any;
-  }
-}
+

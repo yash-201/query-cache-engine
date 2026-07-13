@@ -145,12 +145,4 @@ export function createNestJSInterceptor(options: NestJSCacheOptions) {
   };
 }
 
-// Prototype Extension to avoid circular dependency loops
-declare module '../cache/CacheManager' {
-  interface CacheManager {
-    /**
-     * Creates a caching middleware/plugin compatible with NestJS.
-     */
-    middleware(options?: Omit<NestJSCacheOptions, 'cacheManager'>): any;
-  }
-}
+
