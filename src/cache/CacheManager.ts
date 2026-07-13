@@ -277,7 +277,12 @@ export class CacheManager {
       cacheManager: this,
     });
 
-    const dispatcher = (arg1: any, arg2?: any, arg3?: any) => {
+    const dispatcher = function (this: any, arg1: any, arg2?: any, arg3?: any) {
+      // Detect when instantiated via 'new' (e.g. by NestJS @UseInterceptors decorator)
+      if (new.target) {
+        return nestJSInterceptor as any;
+      }
+
       // 1. Detect NestJS Interceptor context: intercept(context, next)
       if (arg1 && typeof arg1.switchToHttp === 'function' && arg2 && typeof arg2.handle === 'function') {
         return nestJSInterceptor.intercept(arg1, arg2);
