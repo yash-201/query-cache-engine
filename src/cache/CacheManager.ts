@@ -326,6 +326,7 @@ export class CacheManager {
     };
 
     (dispatcher as any)[Symbol.for('skip-override')] = true;
+    (dispatcher as any)._isCacheMiddleware = true;
     return dispatcher;
   }
 

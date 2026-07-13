@@ -12,6 +12,17 @@ export interface KeyGeneratorOptions {
    * Custom headers are case-insensitive.
    */
   headers?: string[];
+
+  /**
+   * Custom request properties to include in the cache key generation (e.g. 'user.id', 'session.id').
+   */
+  customFields?: string[];
+}
+
+function getValueByPath(obj: any, path: string): any {
+  return path.split('.').reduce((acc, part) => {
+    return acc && typeof acc === 'object' ? acc[part] : undefined;
+  }, obj);
 }
 
 export function generateCacheKey(
@@ -22,6 +33,7 @@ export function generateCacheKey(
     params?: any;
     body?: any;
     headers?: Record<string, any>;
+    [key: string]: any; // Allow custom middleware properties (e.g. req.user)
   },
   options: KeyGeneratorOptions = {}
 ): string {
@@ -47,6 +59,17 @@ export function generateCacheKey(
     }
   }
 
+  // Extract custom fields from the request object
+  const resolvedFields: Record<string, any> = {};
+  if (options.customFields) {
+    for (const field of options.customFields) {
+      const val = getValueByPath(req, field);
+      if (val !== undefined) {
+        resolvedFields[field] = val;
+      }
+    }
+  }
+
   // Separate path from query parameters to avoid duplicate query representation
   const urlPath = req.originalUrl.split('?')[0];
 
@@ -58,6 +81,7 @@ export function generateCacheKey(
     params: req.params ?? {},
     body: req.body ?? {},
     headers: selectedHeaders,
+    customFields: resolvedFields,
   };
 
   // Deterministic serialization and hashing

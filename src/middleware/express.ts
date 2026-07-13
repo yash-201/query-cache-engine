@@ -53,6 +53,12 @@ export function createExpressMiddleware(options: ExpressCacheOptions) {
       return next();
     }
 
+    // Auto-override: if running as global middleware, skip if there's a route-specific cache middleware downstream
+    const isGlobal = !(req as any).route;
+    if (isGlobal && hasRouteSpecificCacheMiddleware(req)) {
+      return next();
+    }
+
     const key = generateCacheKey(req, keyOptions);
     try {
       // Try to fetch from cache
@@ -152,4 +158,25 @@ export function createExpressMiddleware(options: ExpressCacheOptions) {
     next();
   };
 }
+
+function hasRouteSpecificCacheMiddleware(req: any): boolean {
+  if (!req.app || !req.app._router || !req.app._router.stack) {
+    return false;
+  }
+  const path = req.path || req.url.split('?')[0];
+  for (const layer of req.app._router.stack) {
+    if (layer.route && layer.route.path) {
+      const matches = typeof layer.match === 'function' ? layer.match(path) : false;
+      if (matches) {
+        for (const routeLayer of layer.route.stack) {
+          if (routeLayer.handle && (routeLayer.handle as any)._isCacheMiddleware) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
 export type ExpressCacheMiddleware = ReturnType<typeof createExpressMiddleware>;

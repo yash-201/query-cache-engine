@@ -51,4 +51,36 @@ describe('generateCacheKey', () => {
     const keyOptsDiff = { headers: ['tenant-id', 'accept-language'] };
     expect(generateCacheKey(req1, keyOptsDiff)).not.toBe(generateCacheKey(req2, keyOptsDiff));
   });
+
+  it('should extract and include custom request properties in key generation', () => {
+    const req1 = {
+      method: 'GET',
+      originalUrl: '/logs',
+      user: { id: 'user_123', role: 'admin' },
+      session: { active: true },
+    };
+    const req2 = {
+      method: 'GET',
+      originalUrl: '/logs',
+      user: { id: 'user_456', role: 'admin' },
+      session: { active: true },
+    };
+    const req3 = {
+      method: 'GET',
+      originalUrl: '/logs',
+      user: { id: 'user_123', role: 'user' }, // Different role
+      session: { active: true },
+    };
+
+    // Cache keys should differ between different user IDs
+    const keyOptsId = { customFields: ['user.id'] };
+    expect(generateCacheKey(req1, keyOptsId)).not.toBe(generateCacheKey(req2, keyOptsId));
+
+    // Cache keys should be identical if they share the same user.id even if user.role differs (since we only track user.id)
+    expect(generateCacheKey(req1, keyOptsId)).toBe(generateCacheKey(req3, keyOptsId));
+
+    // Cache keys should differ when tracking user.role
+    const keyOptsRole = { customFields: ['user.id', 'user.role'] };
+    expect(generateCacheKey(req1, keyOptsRole)).not.toBe(generateCacheKey(req3, keyOptsRole));
+  });
 });

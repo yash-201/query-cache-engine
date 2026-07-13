@@ -138,4 +138,78 @@ describe('Express Caching Middleware', () => {
 
     expect(postExecutions).toBe(2);
   });
+
+  it('should auto-override global middleware when route-specific cache middleware is present', async () => {
+    const localCacheManager = new CacheManager({ provider: new MemoryProvider() });
+    const localApp = express();
+    let localExecs = 0;
+    
+    // Global middleware
+    localApp.use(localCacheManager.middleware({
+      ttl: 50,
+      tags: ['global-tag'],
+    }));
+    
+    // Route-specific middleware with specific header key option and different tag
+    localApp.get(
+      '/override-route',
+      localCacheManager.middleware({
+        ttl: 60,
+        tags: ['route-tag'],
+        keyOptions: {
+          headers: ['x-tenant']
+        }
+      }),
+      (req, res) => {
+        localExecs++;
+        res.json({ count: localExecs });
+      }
+    );
+
+    let localServer: Server;
+    let localPort = 0;
+    await new Promise<void>((resolve) => {
+      localServer = localApp.listen(0, () => {
+        const addr = localServer.address();
+        if (addr && typeof addr === 'object') {
+          localPort = addr.port;
+        }
+        resolve();
+      });
+    });
+
+    try {
+      // 1. Initial request with x-tenant: A
+      const res1 = await fetch(`http://localhost:${localPort}/override-route`, {
+        headers: { 'x-tenant': 'A' }
+      });
+      expect(res1.headers.get('x-cache')).toBe('MISS');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // 2. Request with same route but x-tenant: B (should MISS because route-level caching hashes x-tenant)
+      const res2 = await fetch(`http://localhost:${localPort}/override-route`, {
+        headers: { 'x-tenant': 'B' }
+      });
+      expect(res2.headers.get('x-cache')).toBe('MISS');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // 3. Request with x-tenant: A again (should HIT)
+      const res3 = await fetch(`http://localhost:${localPort}/override-route`, {
+        headers: { 'x-tenant': 'A' }
+      });
+      expect(res3.headers.get('x-cache')).toBe('HIT');
+      
+      // 4. Invalidate only route-tag
+      await localCacheManager.invalidateTag('route-tag');
+      
+      // 5. Request with x-tenant: A again (should MISS since we invalidated its tag)
+      const res4 = await fetch(`http://localhost:${localPort}/override-route`, {
+        headers: { 'x-tenant': 'A' }
+      });
+      expect(res4.headers.get('x-cache')).toBe('MISS');
+
+    } finally {
+      await new Promise<void>((resolve) => localServer.close(() => resolve()));
+    }
+  });
 });
