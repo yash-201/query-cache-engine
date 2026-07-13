@@ -29,8 +29,16 @@
     "single-flight",
     "typescript"
   ],
-  "author": "",
+  "author": "Yash Parmar",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yash-201/query-cache-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yash-201/query-cache-engine/issues"
+  },
+  "homepage": "https://github.com/yash-201/query-cache-engine#readme",
   "files": [
     "dist"
   ],
