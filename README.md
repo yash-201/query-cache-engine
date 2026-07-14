@@ -4,6 +4,12 @@
 
 The package exposes a unified **`.middleware()`** helper that dynamically detects the framework environment (Express, Fastify, Hono, NestJS, Koa, Next.js) and configures the caching hooks automatically.
 
+<p align="center">
+  <img src="assets/architecture_diagram.png" alt="query-cache-engine Architecture & Lifecycle Flow" width="800" />
+</p>
+
+---
+
 ## Core Features
 - **Unified Middleware**: One method (`cacheManager.middleware()`) to cache routes across Express, Fastify, Hono, NestJS, and Koa.
 - **Request Coalescing (Single Flight)**: Concurrent requests for the same cache miss wait for the first callback execution rather than duplicating queries to your database.
