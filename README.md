@@ -5,7 +5,7 @@
 The package exposes a unified **`.middleware()`** helper that dynamically detects the framework environment (Express, Fastify, Hono, NestJS, Koa, Next.js) and configures the caching hooks automatically.
 
 <p align="center">
-  <img src="assets/architecture_diagram.png" alt="query-cache-engine Architecture & Lifecycle Flow" width="800" />
+  <img src="assets/request_response_flow.png" alt="query-cache-engine Request/Response Lifecycle Flow" width="800" />
 </p>
 
 ---
