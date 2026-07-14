@@ -15,8 +15,6 @@ logs/
 *.log
 
 # Environment variables and secrets
-.env
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -59,7 +57,6 @@ bin-release/
 
 # IDEs and editors
 .idea/
-.vscode/
 *.suo
 *.ntvs*
 *.njsproj
@@ -72,3 +69,8 @@ Thumbs.db
 
 # TypeScript declaration cache
 *.tsbuildinfo
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
+config.bat
